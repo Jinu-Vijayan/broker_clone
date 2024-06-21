@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser")
 const { UserRoute } = require("./routes/User.Route.js");
 const { AuthRoute } = require("./routes/Auth.Route.js");
 const { ListingRouter } = require("./routes/Listing.Route.js");
+const path = require('path')
 require("dotenv").config();
 
 const app = express();
@@ -25,9 +26,17 @@ mongoose.connect(`${MONGO_URI}/broker`)
     console.log("Error occured while connecting to data base");
 });
 
+__dirname = path.resolve();
+
 app.use("/api/user",UserRoute);
 app.use("/api/auth",AuthRoute);
 app.use("/api/listing",ListingRouter);
+
+app.use(express.static(path.join(__dirname,"client","dist")));
+
+app.get('*', (req,res)=>{
+    res.sendFile(path.join(__dirname,"client","dist","index.html"))
+})
 
 app.use((err,req,res,next)=>{
     const statusCode = err.statusCode || 500;
@@ -40,11 +49,6 @@ app.use((err,req,res,next)=>{
     });
 });
 
-app.use("/*",(req,res)=>{
-    res.status(404).json({
-        message : "Route not found"
-    });
-});
 
 app.listen(PORT,()=>{
     console.log("Server is running on port", PORT)
